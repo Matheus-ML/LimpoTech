@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table
-public class Usuario {
+public class UsuarioModel {
     private Long id;
     private String email;
     private String senha;
