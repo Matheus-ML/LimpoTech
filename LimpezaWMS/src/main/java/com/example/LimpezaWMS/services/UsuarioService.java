@@ -6,6 +6,7 @@ import com.example.LimpezaWMS.repositories.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,15 +32,28 @@ public class UsuarioService {
     }
 
     //Editar
-    public Boolean UsuarioCriar(UsuarioDto dados){
+    public Boolean UsuarioEditar(UsuarioDto dados){
         Optional<UsuarioModel> usuarioOp = usuarioRepository.findById(dados.getId());
         if (usuarioOp.isEmpty()){
             return false;
         }
+        UsuarioModel usuarioModel = usuarioOp.get();
+        usuarioModel.setEmail(dados.getEmail());
+        usuarioModel.setSenha(dados.getSenha());
+        usuarioModel.setRole(dados.getRole());
 
+        usuarioRepository.save(usuarioModel);
+
+        return true;
+    }
+
+    //Listar
+    public List<UsuarioDto> UsuarioListar(Long id){
+        
 
     }
-    //Listar
+
+
     //Deletar
 
 }
