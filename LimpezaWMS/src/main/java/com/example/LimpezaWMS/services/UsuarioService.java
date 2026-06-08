@@ -21,7 +21,6 @@ public class UsuarioService {
             System.out.println("Email, Senha ou Nivel de Acesso está vázio.");
             return false;
         }
-
         UsuarioModel usuarioModel = new UsuarioModel();
         usuarioModel.setEmail(dados.getEmail());
         usuarioModel.setSenha(dados.getSenha());
@@ -47,13 +46,8 @@ public class UsuarioService {
         return true;
     }
 
-    //Listar
-    public List<UsuarioDto> UsuarioListar(Long id){
-        
-
+    public Boolean validaUsuario (UsuarioDto usuarioDto){
+        Optional<UsuarioModel> usuarioOp = usuarioRepository.findByEmailAndSenha(usuarioDto.getEmail(), usuarioDto.getSenha());
+        return usuarioOp.isPresent();
     }
-
-
-    //Deletar
-
 }
