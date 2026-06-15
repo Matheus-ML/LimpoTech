@@ -44,7 +44,7 @@ public class ProdutoService {
     }
 
     //Read
-    List<ProdutoDto> listandoProduto (){
+    public List<ProdutoDto> listandoProduto (){
     List<ProdutoDto> listaProdutoDto = new ArrayList<>();
     List<ProdutoModel> listaProdutoModel = produtoRepository.findAll();
 
