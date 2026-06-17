@@ -4,6 +4,7 @@ import com.example.LimpezaWMS.dtos.UsuarioDto;
 import com.example.LimpezaWMS.models.UsuarioModel;
 import com.example.LimpezaWMS.repositories.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,11 +15,18 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class UsuarioService implements UserDetailsService {
 
+    @Autowired
     private final UsuarioRepository usuarioRepository;
+
+    @Autowired
     private final PasswordEncoder passwordEncoder;
+
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
+        this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // -------------------------------------------------------
     // Exigido pelo Spring Security — busca usuário pelo e-mail

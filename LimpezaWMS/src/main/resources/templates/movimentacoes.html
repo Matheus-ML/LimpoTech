@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LimpoTech — Movimentações</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@600;700&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --verde: #0d9488; --verde-escuro: #0f766e; --verde-claro: #ccfbf1;
+            --verde-medio: #14b8a6; --branco: #ffffff; --fundo: #f0fdfa;
+            --texto: #134e4a; --texto-medio: #374151; --borda: #d1fae5;
+            --sombra: 0 2px 12px rgba(13,148,136,0.10);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--fundo); color: var(--texto-medio); min-height: 100vh; }
+
+        nav { background: linear-gradient(90deg, var(--verde), var(--verde-escuro)); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 60px; box-shadow: 0 2px 8px rgba(13,148,136,0.25); }
+        .nav-logo { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: white; text-decoration: none; }
+        .nav-logo span { opacity: 0.75; }
+        .nav-links { display: flex; gap: 4px; }
+        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 6px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; transition: background 0.2s; }
+        .nav-links a:hover, .nav-links a.ativo { background: rgba(255,255,255,0.15); color: white; }
+        .nav-usuario { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.85); font-size: 13px; }
+        .btn-sair { background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+        .btn-sair:hover { background: rgba(255,255,255,0.25); }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .page-title { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: var(--texto); }
+
+        .btn { padding: 9px 18px; border-radius: 9px; font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif; cursor: pointer; border: none; transition: opacity 0.2s, transform 0.15s; }
+        .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-primary { background: var(--verde); color: white; }
+        .btn-cancelar { background: #f3f4f6; color: var(--texto-medio); }
+
+        .filtros { background: var(--branco); border-radius: 12px; border: 1px solid var(--borda); padding: 16px 20px; display: flex; gap: 12px; align-items: center; margin-bottom: 20px; box-shadow: var(--sombra); flex-wrap: wrap; }
+        .filtros input, .filtros select { padding: 9px 14px; border: 1.5px solid var(--borda); border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; background: var(--fundo); }
+        .filtros input:focus, .filtros select:focus { border-color: var(--verde-medio); }
+
+        .tabela-wrap { background: var(--branco); border-radius: 14px; border: 1px solid var(--borda); overflow: hidden; box-shadow: var(--sombra); }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--verde-claro); }
+        th { text-align: left; padding: 12px 18px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--verde-escuro); }
+        td { padding: 13px 18px; font-size: 13px; border-top: 1px solid var(--borda); color: var(--texto-medio); }
+        tr:hover td { background: #f9fefe; }
+
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge.entrada { background: #d1fae5; color: #065f46; }
+        .badge.saida   { background: #fee2e2; color: #991b1b; }
+        .vazio { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+
+        /* Modal */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
+        .overlay.aberto { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-titulo { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: var(--texto); margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 500; color: var(--texto); margin-bottom: 6px; }
+        input[type="number"], select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--borda); border-radius: 9px; font-size: 14px; font-family: 'Inter', sans-serif; outline: none; background: var(--fundo); }
+        input:focus, select:focus { border-color: var(--verde-medio); box-shadow: 0 0 0 3px rgba(20,184,166,0.12); }
+        .modal-acoes { display: flex; gap: 10px; margin-top: 24px; }
+
+        .msg-erro { background: #fef2f2; border: 1px solid #fecaca; border-left: 3px solid #ef4444; color: #b91c1c; font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px; display: none; }
+        .msg-erro.visivel { display: block; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/dashboard" class="nav-logo">Limpo<span>Tech</span></a>
+    <div class="nav-links">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/produtos">Produtos</a>
+        <a href="/movimentacoes" class="ativo">Movimentações</a>
+        <a href="/usuarios" sec:authorize="hasRole('ADMIN')">Usuários</a>
+    </div>
+    <div class="nav-usuario">
+        <span th:text="${#authentication.name}">usuario@email.com</span>
+        <a href="/login" class="btn-sair">Sair</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title">Movimentações</div>
+        <button class="btn btn-primary" onclick="document.getElementById('overlay').classList.add('aberto')">+ Nova Movimentação</button>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get" th:action="@{/movimentacoes}">
+        <div class="filtros">
+            <input type="date" name="dataInicio" th:value="${dataInicio}" placeholder="Data início" />
+            <input type="date" name="dataFim"    th:value="${dataFim}"    placeholder="Data fim" />
+            <select name="tipo">
+                <option value="">Todos os tipos</option>
+                <option value="ENTRADA" th:selected="${tipo == 'ENTRADA'}">Entrada</option>
+                <option value="SAIDA"   th:selected="${tipo == 'SAIDA'}">Saída</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <a href="/movimentacoes" class="btn btn-cancelar">Limpar</a>
+        </div>
+    </form>
+
+    <div class="tabela-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data / Hora</th>
+                    <th>Produto</th>
+                    <th>Tipo</th>
+                    <th>Quantidade</th>
+                    <th>Responsável</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="mov : ${movimentacoes}">
+                    <td th:text="${#temporals.format(mov.dataEhora, 'dd/MM/yyyy HH:mm')}">--</td>
+                    <td th:text="${mov.produto.nomeProduto}">--</td>
+                    <td>
+                        <span th:text="${mov.tipo}"
+                              th:classappend="${mov.tipo == 'ENTRADA'} ? 'badge entrada' : 'badge saida'"
+                              class="badge">--</span>
+                    </td>
+                    <td th:text="${mov.quantidade}">--</td>
+                    <td th:text="${mov.usuario.email}">--</td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(movimentacoes)}">
+                    <td colspan="5" class="vazio">Nenhuma movimentação encontrada.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nova Movimentação -->
+<div class="overlay" id="overlay">
+    <div class="modal">
+        <div class="modal-titulo">Nova Movimentação</div>
+        <div class="msg-erro" id="erroMsg"></div>
+        <form id="formMov" method="post" th:action="@{/movimentacoes}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <div class="form-group">
+                <label>Produto</label>
+                <select name="produtoId" required>
+                    <option value="">Selecione um produto...</option>
+                    <option th:each="p : ${produtos}" th:value="${p.id}" th:text="${p.nomeProduto}">--</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tipo</label>
+                <select name="tipo" required>
+                    <option value="">Selecione...</option>
+                    <option value="ENTRADA">Entrada</option>
+                    <option value="SAIDA">Saída</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Quantidade</label>
+                <input type="number" name="quantidade" min="1" placeholder="0" required />
+            </div>
+            <div class="modal-acoes">
+                <button type="button" class="btn btn-cancelar" onclick="document.getElementById('overlay').classList.remove('aberto')">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex:1">Registrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('overlay').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('aberto');
+    });
+
+    // Exibe mensagem de erro vinda da URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('erro')) {
+        const erroMsg = document.getElementById('erroMsg');
+        erroMsg.textContent = decodeURIComponent(params.get('erro'));
+        erroMsg.classList.add('visivel');
+        document.getElementById('overlay').classList.add('aberto');
+    }
+</script>
+
+</body>
+</html>

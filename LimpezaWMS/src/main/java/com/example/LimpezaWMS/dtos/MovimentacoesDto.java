@@ -12,9 +12,12 @@ import java.time.LocalDateTime;
 @Data
 
 public class MovimentacoesDto {
-
+    private Long id;
     private LocalDateTime dataEhora;
     private UsuarioDto usuario;
     private ProdutoDto produto;
+
+    private String tipo;
+    private Integer quantidade;
 
 }

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LimpoTech — Usuários</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Sora:wght@600;700&display=swap');
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --verde: #0d9488; --verde-escuro: #0f766e; --verde-claro: #ccfbf1;
+            --verde-medio: #14b8a6; --branco: #ffffff; --fundo: #f0fdfa;
+            --texto: #134e4a; --texto-medio: #374151; --borda: #d1fae5;
+            --sombra: 0 2px 12px rgba(13,148,136,0.10);
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--fundo); color: var(--texto-medio); min-height: 100vh; }
+
+        nav { background: linear-gradient(90deg, var(--verde), var(--verde-escuro)); padding: 0 32px; display: flex; align-items: center; justify-content: space-between; height: 60px; box-shadow: 0 2px 8px rgba(13,148,136,0.25); }
+        .nav-logo { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; color: white; text-decoration: none; }
+        .nav-logo span { opacity: 0.75; }
+        .nav-links { display: flex; gap: 4px; }
+        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 6px 14px; border-radius: 8px; font-size: 14px; font-weight: 500; transition: background 0.2s; }
+        .nav-links a:hover, .nav-links a.ativo { background: rgba(255,255,255,0.15); color: white; }
+        .nav-usuario { display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.85); font-size: 13px; }
+        .btn-sair { background: rgba(255,255,255,0.15); border: none; color: white; padding: 6px 14px; border-radius: 8px; font-size: 13px; font-family: 'Inter', sans-serif; cursor: pointer; text-decoration: none; }
+        .btn-sair:hover { background: rgba(255,255,255,0.25); }
+
+        .container { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .page-title { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 700; color: var(--texto); }
+
+        .btn { padding: 9px 18px; border-radius: 9px; font-size: 14px; font-weight: 500; font-family: 'Inter', sans-serif; cursor: pointer; border: none; transition: opacity 0.2s, transform 0.15s; }
+        .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-primary { background: var(--verde); color: white; }
+        .btn-danger  { background: #ef4444; color: white; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn-cancelar { background: #f3f4f6; color: var(--texto-medio); }
+
+        .tabela-wrap { background: var(--branco); border-radius: 14px; border: 1px solid var(--borda); overflow: hidden; box-shadow: var(--sombra); }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: var(--verde-claro); }
+        th { text-align: left; padding: 12px 18px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--verde-escuro); }
+        td { padding: 13px 18px; font-size: 13px; border-top: 1px solid var(--borda); color: var(--texto-medio); }
+        tr:hover td { background: #f9fefe; }
+        .acoes { display: flex; gap: 8px; }
+        .vazio { text-align: center; padding: 40px; color: #9ca3af; font-size: 14px; }
+
+        .badge-role { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-role.admin    { background: #fef3c7; color: #92400e; }
+        .badge-role.operador { background: var(--verde-claro); color: var(--verde-escuro); }
+
+        /* Modal */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 100; align-items: center; justify-content: center; }
+        .overlay.aberto { display: flex; }
+        .modal { background: white; border-radius: 16px; padding: 32px; width: 100%; max-width: 420px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .modal-titulo { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 700; color: var(--texto); margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-size: 13px; font-weight: 500; color: var(--texto); margin-bottom: 6px; }
+        input[type="text"], input[type="email"], input[type="password"], select {
+            width: 100%; padding: 10px 14px; border: 1.5px solid var(--borda); border-radius: 9px;
+            font-size: 14px; font-family: 'Inter', sans-serif; outline: none; background: var(--fundo);
+        }
+        input:focus, select:focus { border-color: var(--verde-medio); box-shadow: 0 0 0 3px rgba(20,184,166,0.12); }
+        .hint { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+        .modal-acoes { display: flex; gap: 10px; margin-top: 24px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/dashboard" class="nav-logo">Limpo<span>Tech</span></a>
+    <div class="nav-links">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/produtos">Produtos</a>
+        <a href="/movimentacoes">Movimentações</a>
+        <a href="/usuarios" class="ativo">Usuários</a>
+    </div>
+    <div class="nav-usuario">
+        <span th:text="${#authentication.name}">usuario@email.com</span>
+        <a href="/login" class="btn-sair">Sair</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title">Usuários</div>
+        <button class="btn btn-primary" onclick="abrirModal()">+ Novo Usuário</button>
+    </div>
+
+    <div class="tabela-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="usuario : ${usuarios}">
+                    <td th:text="${usuario.id}">--</td>
+                    <td th:text="${usuario.email}">--</td>
+                    <td>
+                        <span th:text="${usuario.role}"
+                              th:classappend="${usuario.role == 'ADMIN'} ? 'badge-role admin' : 'badge-role operador'"
+                              class="badge-role">--</span>
+                    </td>
+                    <td>
+                        <div class="acoes">
+                            <button class="btn btn-primary btn-sm"
+                                    th:data-id="${usuario.id}"
+                                    th:data-email="${usuario.email}"
+                                    th:data-role="${usuario.role}"
+                                    onclick="abrirModalEditar(
+                                    this.dataset.id,
+                                    this.dataset.email,
+                                    this.dataset.role
+                            )">
+                                Editar
+                            </button>
+                            <form th:action="@{/usuarios/{id}(id=${usuario.id})}" method="post"
+                                  onsubmit="return confirm('Confirma a exclusão do usuário?')">
+                                <input type="hidden" name="_method" value="DELETE" />
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(usuarios)}">
+                    <td colspan="4" class="vazio">Nenhum usuário cadastrado.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Novo / Editar Usuário -->
+<div class="overlay" id="overlay">
+    <div class="modal">
+        <div class="modal-titulo" id="modalTitulo">Novo Usuário</div>
+        <form id="formUsuario" method="post" th:action="@{/usuarios}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <input type="hidden" name="_method" id="formMethod" value="POST" />
+            <div class="form-group">
+                <label>E-mail</label>
+                <input type="email" name="email" id="inputEmail" placeholder="usuario@limpotech.com" required />
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" name="senha" id="inputSenha" placeholder="••••••••" />
+                <div class="hint" id="hintSenha">Mínimo 6 caracteres.</div>
+            </div>
+            <div class="form-group">
+                <label>Perfil</label>
+                <select name="role" id="inputRole" required>
+                    <option value="OPERADOR">Operador de Almoxarifado</option>
+                    <option value="ADMIN">Administrador do Sistema</option>
+                </select>
+            </div>
+            <div class="modal-acoes">
+                <button type="button" class="btn btn-cancelar" onclick="fecharModal()">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex:1">Salvar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModal() {
+        document.getElementById('modalTitulo').textContent = 'Novo Usuário';
+        document.getElementById('formUsuario').action = '/usuarios';
+        document.getElementById('formMethod').value = 'POST';
+        document.getElementById('inputEmail').value = '';
+        document.getElementById('inputSenha').value = '';
+        document.getElementById('inputSenha').required = true;
+        document.getElementById('inputRole').value = 'OPERADOR';
+        document.getElementById('hintSenha').textContent = 'Mínimo 6 caracteres.';
+        document.getElementById('overlay').classList.add('aberto');
+    }
+
+    function abrirModalEditar(id, email, role) {
+        document.getElementById('modalTitulo').textContent = 'Editar Usuário';
+        document.getElementById('formUsuario').action = '/usuarios/' + id;
+        document.getElementById('formMethod').value = 'PUT';
+        document.getElementById('inputEmail').value = email;
+        document.getElementById('inputSenha').value = '';
+        document.getElementById('inputSenha').required = false;
+        document.getElementById('inputRole').value = role;
+        document.getElementById('hintSenha').textContent = 'Deixe em branco para manter a senha atual.';
+        document.getElementById('overlay').classList.add('aberto');
+    }
+
+    function fecharModal() {
+        document.getElementById('overlay').classList.remove('aberto');
+    }
+
+    document.getElementById('overlay').addEventListener('click', function(e) {
+        if (e.target === this) fecharModal();
+    });
+</script>
+
+</body>
+</html>

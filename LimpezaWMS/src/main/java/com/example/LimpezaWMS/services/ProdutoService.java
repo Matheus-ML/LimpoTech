@@ -1,74 +1,49 @@
 package com.example.LimpezaWMS.services;
+
 import com.example.LimpezaWMS.dtos.ProdutoDto;
 import com.example.LimpezaWMS.models.ProdutoModel;
 import com.example.LimpezaWMS.repositories.ProdutoRepository;
-import com.example.LimpezaWMS.repositories.UsuarioRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProdutoService {
-    @Autowired
-    private UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    //Criar
-    public Boolean criarProduto (ProdutoDto dados){
-        ProdutoModel produtoModel = new ProdutoModel();
-
-        produtoModel.setNomeProduto(dados.getNomeProduto());
-        produtoModel.setQuantidadeProduto(dados.getQuantidadeProduto());
-
-        return true;
-    }
-
-    //Update
-    public Boolean editarProduto(ProdutoDto dados){
-        Optional<ProdutoModel> produtoOp = produtoRepository.findById(dados.getId());
-        if (produtoOp.isEmpty()){
-            return false;
+    public Page<ProdutoModel> listar(String nomeProduto, Pageable pageable) {
+        if (nomeProduto != null && !nomeProduto.isBlank()) {
+            return produtoRepository.findByNomeProdutoContainingIgnoreCase(nomeProduto, pageable);
         }
-
-        ProdutoModel produtoModel = new ProdutoModel();
-        produtoModel.setNomeProduto(dados.getNomeProduto());
-        produtoModel.setQuantidadeProduto(dados.getQuantidadeProduto());
-
-        produtoRepository.save(produtoModel);
-
-        return true;
+        return produtoRepository.findAll(pageable);
     }
 
-    //Read
-    public List<ProdutoDto> listandoProduto (){
-    List<ProdutoDto> listaProdutoDto = new ArrayList<>();
-    List<ProdutoModel> listaProdutoModel = produtoRepository.findAll();
-
-    for (ProdutoModel produtoModel : listaProdutoModel){
-        ProdutoDto produtoDto = new ProdutoDto();
-
-        produtoDto.setNomeProduto(produtoModel.getNomeProduto());
-        produtoDto.setQuantidadeProduto(produtoModel.getQuantidadeProduto());
-
-        listaProdutoDto.add(produtoDto);
-    }
-    return  listaProdutoDto;
+    public ProdutoModel buscarPorId(Long id) {
+        return produtoRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Produto não encontrado: " + id));
     }
 
+    public ProdutoModel criar(ProdutoDto dto) {
+        ProdutoModel produto = new ProdutoModel();
+        produto.setNomeProduto(dto.getNomeProduto());
+        produto.setQuantidadeProduto(dto.getQuantidadeProduto());
+        return produtoRepository.save(produto);
+    }
 
-    //Delete
-    boolean excluirProduto (Long id){
-        Optional<ProdutoModel> produtoOP = produtoRepository.findById(id);
+    public ProdutoModel editar(Long id, ProdutoDto dto) {
+        ProdutoModel produto = buscarPorId(id);
+        produto.setNomeProduto(dto.getNomeProduto());
+        produto.setQuantidadeProduto(dto.getQuantidadeProduto());
+        return produtoRepository.save(produto);
+    }
 
-        if (produtoOP.isEmpty()){
-           return false;
-        }else{
-            produtoRepository.delete(produtoOP.get());
-            return true;
+    public void excluir(Long id) {
+        if (!produtoRepository.existsById(id)) {
+            throw new IllegalArgumentException("Produto não encontrado: " + id);
         }
+        produtoRepository.deleteById(id);
     }
 }
